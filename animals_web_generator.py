@@ -13,7 +13,6 @@ def load_data(file_path: str) -> List[Dict]:
     Returns:
         List[Dict]: List of dictionaries containing animal data
     """
-    # Create absolute path to JSON file
     current_dir = os.path.dirname(os.path.abspath(__file__))
     absolute_path = os.path.join(current_dir, file_path)
 
@@ -23,24 +22,26 @@ def load_data(file_path: str) -> List[Dict]:
 
 def generate_animal_info(animal: Dict) -> str:
     """
-    Generates a string with animal information.
+    Generates HTML formatted string with animal information.
 
     Args:
         animal (Dict): Dictionary containing animal information
 
     Returns:
-        str: Formatted string with animal information
+        str: HTML formatted string with animal information
     """
-    output = ""
+    output = '<li class="cards__item">\n<div class="card__text">\n'
+
     if "name" in animal:
-        output += f"Name: {animal['name']}\n"
+        output += f'<div class="card__title">{animal["name"]}</div>\n'
     if "characteristics" in animal and "diet" in animal["characteristics"]:
-        output += f"Diet: {animal['characteristics']['diet']}\n"
+        output += f'Diet: {animal["characteristics"]["diet"]}<br>\n'
     if "locations" in animal and animal["locations"]:
-        output += f"Location: {animal['locations'][0]}\n"
+        output += f'Location: {animal["locations"][0]}<br>\n'
     if "characteristics" in animal and "type" in animal["characteristics"]:
-        output += f"Type: {animal['characteristics']['type']}\n"
-    output += "\n"
+        output += f'Type: {animal["characteristics"]["type"]}<br>\n'
+
+    output += '</div>\n</li>\n'
     return output
 
 

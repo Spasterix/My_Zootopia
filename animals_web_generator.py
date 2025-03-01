@@ -20,15 +20,15 @@ def load_data(file_path: str) -> List[Dict]:
         return json.load(handle)
 
 
-def generate_animal_info(animal: Dict) -> str:
+def serialize_animal(animal: Dict) -> str:
     """
-    Generates HTML formatted string with animal information.
+    Serializes a single animal object to HTML format.
 
     Args:
         animal (Dict): Dictionary containing animal information
 
     Returns:
-        str: HTML formatted string with animal information
+        str: HTML formatted string for a single animal
     """
     output = '<li class="cards__item">\n'
 
@@ -37,16 +37,46 @@ def generate_animal_info(animal: Dict) -> str:
 
     output += '    <p class="card__text">\n'
 
-    if "characteristics" in animal and "diet" in animal["characteristics"]:
-        output += f'        <strong>Diet:</strong> {animal["characteristics"]["diet"]}<br/>\n'
-    if "locations" in animal and animal["locations"]:
-        output += f'        <strong>Location:</strong> {animal["locations"][0]}<br/>\n'
-    if "characteristics" in animal and "type" in animal["characteristics"]:
-        output += f'        <strong>Type:</strong> {animal["characteristics"]["type"]}<br/>\n'
+    # Check if characteristics exists
+    if "characteristics" in animal:
+        chars = animal["characteristics"]
+
+        # Diet information
+        if "diet" in chars:
+            output += f'        <strong>Diet:</strong> {chars["diet"]}<br/>\n'
+
+        # Location information
+        if "locations" in animal and animal["locations"]:
+            output += f'        <strong>Location:</strong> {animal["locations"][0]}<br/>\n'
+
+        # Type information
+        if "type" in chars:
+            output += f'        <strong>Type:</strong> {chars["type"]}<br/>\n'
+
+        # Skin type information
+        if "skin_type" in chars:
+            output += f'        <strong>Skin Type:</strong> {chars["skin_type"]}<br/>\n'
+
+        # Lifespan information
+        if "lifespan" in chars:
+            output += f'        <strong>Lifespan:</strong> {chars["lifespan"]}<br/>\n'
 
     output += '    </p>\n'
     output += '</li>\n'
     return output
+
+
+def serialize_animals_list(animals: List[Dict]) -> str:
+    """
+    Serializes a list of animals to HTML format.
+
+    Args:
+        animals (List[Dict]): List of animal dictionaries
+
+    Returns:
+        str: Complete HTML formatted string for all animals
+    """
+    return "".join(serialize_animal(animal) for animal in animals)
 
 
 def read_template(template_path: str) -> str:
@@ -93,9 +123,7 @@ def process_animals_to_html() -> Tuple[bool, str]:
         animals_data = load_data("animals_data.json")
 
         # Generate animals info string
-        animals_info = ""
-        for animal in animals_data:
-            animals_info += generate_animal_info(animal)
+        animals_info = serialize_animals_list(animals_data)
 
         # Read template and replace placeholder
         template_content = read_template("animals_template.html")

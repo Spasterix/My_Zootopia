@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 
 
 def load_data(file_path: str) -> List[Dict]:
@@ -113,6 +113,124 @@ def write_html(html_content: str, output_path: str) -> None:
         file.write(html_content)
 
 
+def get_unique_values(animals: List[Dict], field: str) -> Set[str]:
+    """
+    Gets all unique values for a given field from the animals data.
+
+    Args:
+        animals (List[Dict]): List of animal dictionaries
+        field (str): Field to get unique values for
+
+    Returns:
+        Set[str]: Set of unique values
+    """
+    values = set()
+    for animal in animals:
+        if "characteristics" in animal and field in animal["characteristics"]:
+            values.add(animal["characteristics"][field])
+        elif field == "location" and "locations" in animal and animal["locations"]:
+            values.add(animal["locations"][0])
+    return values
+
+
+def filter_animals(animals: List[Dict], filters: Dict[str, str]) -> List[Dict]:
+    """
+    Filters animals list by multiple criteria.
+
+    Args:
+        animals (List[Dict]): List of animal dictionaries
+        filters (Dict[str, str]): Dictionary of field:value pairs to filter by
+
+    Returns:
+        List[Dict]: Filtered list of animals
+    """
+    filtered_animals = animals
+    for field, value in filters.items():
+        if value == "all":
+            continue
+
+        if field == "location":
+            filtered_animals = [
+                animal for animal in filtered_animals
+                if "locations" in animal
+                   and animal["locations"]
+                   and animal["locations"][0] == value
+            ]
+        else:
+            filtered_animals = [
+                animal for animal in filtered_animals
+                if "characteristics" in animal
+                   and field in animal["characteristics"]
+                   and animal["characteristics"][field] == value
+            ]
+
+    return filtered_animals
+
+
+def display_filter_menu(animals: List[Dict]) -> Dict[str, str]:
+    """
+    Displays filter options and gets user selections.
+
+    Args:
+        animals (List[Dict]): List of animal dictionaries
+
+    Returns:
+        Dict[str, str]: Dictionary of selected filters
+    """
+    filter_fields = {
+        1: ("skin_type", "Skin Type"),
+        2: ("diet", "Diet"),
+        3: ("type", "Type"),
+        4: ("location", "Location")
+    }
+
+    filters = {}
+    print("\nFilter options:")
+    for num, (field, display_name) in filter_fields.items():
+        print(f"{num}. Filter by {display_name}")
+    print("0. Done selecting filters")
+
+    while True:
+        try:
+            choice = int(input("\nSelect a filter option (0 to finish): "))
+
+            if choice == 0:
+                break
+
+            if choice not in filter_fields:
+                print("Invalid choice. Please try again.")
+                continue
+
+            field, display_name = filter_fields[choice]
+
+            # Get unique values for selected field
+            values = get_unique_values(animals, field)
+            print(f"\nAvailable {display_name} values:")
+            sorted_values = sorted(values)
+            for i, value in enumerate(sorted_values, 1):
+                print(f"{i}. {value}")
+            print("0. Show all")
+
+            # Get user's value choice
+            while True:
+                try:
+                    value_choice = int(input(f"\nSelect {display_name}: "))
+                    if value_choice == 0:
+                        filters[field] = "all"
+                        break
+                    if 1 <= value_choice <= len(sorted_values):
+                        filters[field] = sorted_values[value_choice - 1]
+                        break
+                    print("Invalid choice. Please try again.")
+                except ValueError:
+                    print("Please enter a valid number.")
+
+        except ValueError:
+            print("Please enter a valid number.")
+
+    return filters
+
+
 def process_animals_to_html() -> Tuple[bool, str]:
     """
     Processes animal data and generates HTML file.
@@ -124,6 +242,15 @@ def process_animals_to_html() -> Tuple[bool, str]:
         # Load animal data
         animals_data = load_data("animals_data.json")
 
+        # Get filter selections from user
+        filters = display_filter_menu(animals_data)
+
+        # Apply filters
+        if filters:
+            animals_data = filter_animals(animals_data, filters)
+            if not animals_data:
+                return False, "No animals found matching the selected filters"
+
         # Generate animals info string
         animals_info = serialize_animals_list(animals_data)
 
@@ -133,7 +260,11 @@ def process_animals_to_html() -> Tuple[bool, str]:
 
         # Write to output file
         write_html(final_html, "animals.html")
-        return True, ""
+
+        # Prepare success message
+        filter_msg = ", ".join(f"{k}: {v}" for k, v in filters.items() if v != "all")
+        return True, f"Generated HTML for {len(animals_data)} animals" + \
+                     (f" with filters: {filter_msg}" if filter_msg else "")
 
     except FileNotFoundError as e:
         return False, f"Error: File not found - {str(e)}"
@@ -147,11 +278,8 @@ def main() -> None:
     """
     Main function to generate HTML file from animal data.
     """
-    success, error_message = process_animals_to_html()
-    if not success:
-        print(error_message)
-    else:
-        print("HTML file successfully generated as 'animals.html'")
+    success, message = process_animals_to_html()
+    print(f"\n{message}")
 
 
 if __name__ == "__main__":

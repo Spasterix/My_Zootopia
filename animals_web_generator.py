@@ -35,7 +35,8 @@ def serialize_animal(animal: Dict) -> str:
     if "name" in animal:
         output += f'    <div class="card__title">{animal["name"]}</div>\n'
 
-    output += '    <p class="card__text">\n'
+    output += '    <div class="card__text">\n'
+    output += '        <ul class="animal__details">\n'
 
     # Check if characteristics exists
     if "characteristics" in animal:
@@ -43,25 +44,26 @@ def serialize_animal(animal: Dict) -> str:
 
         # Diet information
         if "diet" in chars:
-            output += f'        <strong>Diet:</strong> {chars["diet"]}<br/>\n'
+            output += f'            <li class="detail__item"><strong>Diet:</strong> {chars["diet"]}</li>\n'
 
         # Location information
         if "locations" in animal and animal["locations"]:
-            output += f'        <strong>Location:</strong> {animal["locations"][0]}<br/>\n'
+            output += f'            <li class="detail__item"><strong>Location:</strong> {animal["locations"][0]}</li>\n'
 
         # Type information
         if "type" in chars:
-            output += f'        <strong>Type:</strong> {chars["type"]}<br/>\n'
+            output += f'            <li class="detail__item"><strong>Type:</strong> {chars["type"]}</li>\n'
 
         # Skin type information
         if "skin_type" in chars:
-            output += f'        <strong>Skin Type:</strong> {chars["skin_type"]}<br/>\n'
+            output += f'            <li class="detail__item"><strong>Skin Type:</strong> {chars["skin_type"]}</li>\n'
 
         # Lifespan information
         if "lifespan" in chars:
-            output += f'        <strong>Lifespan:</strong> {chars["lifespan"]}<br/>\n'
+            output += f'            <li class="detail__item"><strong>Lifespan:</strong> {chars["lifespan"]}</li>\n'
 
-    output += '    </p>\n'
+    output += '        </ul>\n'
+    output += '    </div>\n'
     output += '</li>\n'
     return output
 
